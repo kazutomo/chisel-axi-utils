@@ -1,4 +1,4 @@
-package examples
+package axiexamples
 
 import chisel3.simulator.scalatest.ChiselSim
 import org.scalatest.flatspec.AnyFlatSpec

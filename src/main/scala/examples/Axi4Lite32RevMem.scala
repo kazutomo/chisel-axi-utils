@@ -1,4 +1,4 @@
-package examples
+package axiexamples
 
 import axi._
 
