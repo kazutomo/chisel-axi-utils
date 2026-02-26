@@ -9,8 +9,11 @@ class Axi4Lite32Counter(AxiAddrBW: Int = 24) extends Module
   with HasAxiLite32IO {
 
   val io = IO(new AxiLite32IO(AxiAddrBW))
-  val counter = RegInit(0.U(32.W))
-  counter := counter + 1.U
+
+  val counterReg = RegInit(0.U(24.W))
+  counterReg := counterReg + 1.U
+
+  val rdstallCounterReg = RegInit(0.U(8.W))
 
   val awHoldValidReg = RegInit(false.B)
   val awHoldAddrReg  = Reg(UInt(AxiAddrBW.W))
@@ -39,7 +42,7 @@ class Axi4Lite32Counter(AxiAddrBW: Int = 24) extends Module
   val doWrite = awHoldValidReg && wHoldValidReg && !bvalid
 
   when(doWrite) { // don't care addr
-    counter := wHoldDataReg
+    counterReg := wHoldDataReg
     bvalid         := true.B
     awHoldValidReg := false.B
     wHoldValidReg  := false.B
@@ -54,25 +57,31 @@ class Axi4Lite32Counter(AxiAddrBW: Int = 24) extends Module
   //
   // Read path: AR -> R
   //
-  val rvalid = RegInit(false.B)
-  val rdata  = Reg(UInt(32.W))
+  val rvalidReg = RegInit(false.B)
+  val rdataReg  = Reg(UInt(32.W))
 
-  val arready = !rvalid
+  val arready = !rvalidReg
   io.axi.arready := arready
   val arFire = io.axi.arvalid && arready
 
   val rvalidPipe = RegNext(arFire, init=false.B)
 
-  val rFire = rvalid && io.axi.rready
-  when(rFire) {
-    rvalid := false.B
-  }.elsewhen(rvalidPipe) {
-    rvalid := true.B
-    rdata  := counter
+  when(arFire || rvalidReg) {
+    rdstallCounterReg := rdstallCounterReg + 1.U
   }
 
-  io.axi.rvalid := rvalid
-  io.axi.rdata  := rdata
+  val rFire = rvalidReg && io.axi.rready
+  when(rFire) {
+    rvalidReg := false.B
+    rdstallCounterReg := 0.U
+  }.elsewhen(rvalidPipe) {
+    rvalidReg := true.B
+    // rdataReg  := counterReg
+  }
+
+  io.axi.rvalid := rvalidReg
+  // io.axi.rdata  := rdataReg
+  io.axi.rdata  := Cat(rdstallCounterReg, counterReg) // I need to return the laster counter number 
   io.axi.rresp  := 0.U // OKAY
 }
 
