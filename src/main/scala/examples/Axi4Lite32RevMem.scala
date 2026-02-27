@@ -66,7 +66,7 @@ class Axi4Lite32RevMem(nwords: Int = 128, AxiAddrBW: Int = 24) extends Module
   when(bFire) { bvalid := false.B }
 
   io.axi.bvalid := bvalid
-  io.axi.bresp  := 0.U // 0 means OKAY
+  io.axi.bresp  := AxiLiteResp.OKAY
 
   //
   // Read path: AR -> R
@@ -95,7 +95,7 @@ class Axi4Lite32RevMem(nwords: Int = 128, AxiAddrBW: Int = 24) extends Module
 
   io.axi.rvalid := rvalid
   io.axi.rdata  := rdata
-  io.axi.rresp  := 0.U // OKAY
+  io.axi.rresp  := AxiLiteResp.OKAY
 }
 
 object Axi4Lite32RevMem extends App {

@@ -52,7 +52,7 @@ class Axi4Lite32Counter(AxiAddrBW: Int = 24) extends Module
   when(bFire) { bvalid := false.B }
 
   io.axi.bvalid := bvalid
-  io.axi.bresp  := 0.U // 0 means OKAY
+  io.axi.bresp  := AxiLiteResp.OKAY
 
   //
   // Read path: AR -> R
@@ -82,7 +82,7 @@ class Axi4Lite32Counter(AxiAddrBW: Int = 24) extends Module
   io.axi.rvalid := rvalidReg
   // io.axi.rdata  := rdataReg
   io.axi.rdata  := Cat(rdstallCounterReg, counterReg) // I need to return the laster counter number 
-  io.axi.rresp  := 0.U // OKAY
+  io.axi.rresp  := AxiLiteResp.OKAY
 }
 
 object Axi4Lite32Counter extends App {

@@ -1,1 +1,1 @@
-# axi4-for-chisel
+axi-simple-utils
