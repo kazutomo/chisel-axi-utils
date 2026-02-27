@@ -12,9 +12,9 @@ Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
 val chiselVersion = "7.9.0"
 val scalatestVersion = "3.2.19"
 
-lazy val axichisel = (project in file("."))
+lazy val chiselAxiUtils = (project in file("."))
   .settings(
-    name := "axichisel",
+    name := "chisel-axi-utils",
     libraryDependencies ++= Seq(
       "org.chipsalliance" %% "chisel" % chiselVersion,
       "org.scalatest" %% "scalatest" % scalatestVersion % "test",
