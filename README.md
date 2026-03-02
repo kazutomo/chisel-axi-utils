@@ -16,16 +16,10 @@ Currently, the repository includes:
 AXI4-Stream and AXI4-Full support are planned and will be added
 incrementally.
 
-
 Tested on Chisel 7.9.0 and Verilator 5.044
 
-------------------------------------------------------------------------
-
-## Design Philosophy
-
-This project is not a full-featured AXI reference implementation.
-
-Instead, it provides:
+Note: this project is not a full-featured AXI reference
+implementation.  Instead, it provides:
 
 -   Minimal and clean AXI interfaces
 -   Practical subsets of the protocol
@@ -94,4 +88,3 @@ Planned additions:
 -   AXI4-Stream utilities
 -   Partial AXI4-Full support
 -   Additional adapters and helper components
-
