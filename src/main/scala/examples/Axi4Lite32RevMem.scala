@@ -5,10 +5,10 @@ import axi._
 import chisel3._
 import chisel3.util._
 
-class Axi4Lite32RevMem(nwords: Int = 128, AxiAddrBW: Int = 24) extends Module
+class Axi4Lite32RevMem(nwords: Int = 128, AxiAddrBW: Int = 32) extends Module
   with HasAxiLite32IO {
 
-  val io = IO(new AxiLite32IO(AxiAddrBW))
+  val S = IO(new AxiLite32IO(AxiAddrBW))
 
   val mem = SyncReadMem(nwords, Vec(4, UInt(8.W))) // each word is 4 bytes
 
@@ -28,20 +28,20 @@ class Axi4Lite32RevMem(nwords: Int = 128, AxiAddrBW: Int = 24) extends Module
 
   val bvalid = RegInit(false.B) // response back ready
 
-  io.axi.awready := !awHoldValidReg && !bvalid
-  io.axi.wready  := !wHoldValidReg  && !bvalid
+  S.AXI.awready := !awHoldValidReg && !bvalid
+  S.AXI.wready  := !wHoldValidReg  && !bvalid
 
-  val awFire = io.axi.awvalid && io.axi.awready
-  val wFire  = io.axi.wvalid  && io.axi.wready
+  val awFire = S.AXI.awvalid && S.AXI.awready
+  val wFire  = S.AXI.wvalid  && S.AXI.wready
 
   when(awFire) {
     awHoldValidReg := true.B
-    awHoldAddrReg  := io.axi.awaddr
+    awHoldAddrReg  := S.AXI.awaddr
   }
   when(wFire) {
     wHoldValidReg := true.B
-    wHoldDataReg  := Reverse(io.axi.wdata)
-    wHoldStrbReg  := io.axi.wstrb
+    wHoldDataReg  := Reverse(S.AXI.wdata)
+    wHoldStrbReg  := S.AXI.wstrb
   }
 
   val doWrite = awHoldValidReg && wHoldValidReg && !bvalid
@@ -62,11 +62,11 @@ class Axi4Lite32RevMem(nwords: Int = 128, AxiAddrBW: Int = 24) extends Module
     wHoldValidReg  := false.B
   }
 
-  val bFire = bvalid && io.axi.bready
+  val bFire = bvalid && S.AXI.bready
   when(bFire) { bvalid := false.B }
 
-  io.axi.bvalid := bvalid
-  io.axi.bresp  := AxiLiteResp.OKAY.U
+  S.AXI.bvalid := bvalid
+  S.AXI.bresp  := AxiLiteResp.OKAY.U
 
   //
   // Read path: AR -> R
@@ -76,16 +76,16 @@ class Axi4Lite32RevMem(nwords: Int = 128, AxiAddrBW: Int = 24) extends Module
   val rdata  = Reg(UInt(32.W))
 
   val arready = !rvalid
-  io.axi.arready := arready
-  val arFire = io.axi.arvalid && arready
+  S.AXI.arready := arready
+  val arFire = S.AXI.arvalid && arready
 
-  val arIdx = wordIdx(io.axi.araddr)
+  val arIdx = wordIdx(S.AXI.araddr)
   val memOutVec = mem.read(arIdx, arFire)
   val memOutU32 = Cat(memOutVec(3), memOutVec(2), memOutVec(1), memOutVec(0))
 
   val rvalidPipe = RegNext(arFire, init=false.B)
 
-  val rFire = rvalid && io.axi.rready
+  val rFire = rvalid && S.AXI.rready
   when(rFire) {
     rvalid := false.B
   }.elsewhen(rvalidPipe) {
@@ -93,9 +93,9 @@ class Axi4Lite32RevMem(nwords: Int = 128, AxiAddrBW: Int = 24) extends Module
     rdata  := memOutU32
   }
 
-  io.axi.rvalid := rvalid
-  io.axi.rdata  := rdata
-  io.axi.rresp  := AxiLiteResp.OKAY.U
+  S.AXI.rvalid := rvalid
+  S.AXI.rdata  := rdata
+  S.AXI.rresp  := AxiLiteResp.OKAY.U
 }
 
 object Axi4Lite32RevMem extends App {

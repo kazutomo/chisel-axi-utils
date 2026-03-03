@@ -39,12 +39,12 @@ class AxiLite(AddrBW: Int = 32, DataBW: Int = 32) extends Bundle {
   val rready  = Input(Bool())
 }
 
-class AxiLite32(AddrBW: Int = 24) extends AxiLite(AddrBW, 32)
+class AxiLite32(AddrBW: Int = 32) extends AxiLite(AddrBW, 32)
 
 class AxiLite32IO(addrW: Int) extends Bundle {
-  val axi = new AxiLite32(addrW)
+  val AXI = new AxiLite32(addrW)
 }
 
 trait HasAxiLite32IO { this: Module =>
-  val io: AxiLite32IO
+  val S: AxiLite32IO
 }

@@ -5,10 +5,10 @@ import axi._
 import chisel3._
 import chisel3.util._
 
-class Axi4Lite32Counter(AxiAddrBW: Int = 24) extends Module
+class Axi4Lite32Counter(AxiAddrBW: Int = 32) extends Module
   with HasAxiLite32IO {
 
-  val io = IO(new AxiLite32IO(AxiAddrBW))
+  val S = IO(new AxiLite32IO(AxiAddrBW))
 
   val counterReg = RegInit(0.U(24.W))
   counterReg := counterReg + 1.U
@@ -23,20 +23,20 @@ class Axi4Lite32Counter(AxiAddrBW: Int = 24) extends Module
 
   val bvalid = RegInit(false.B) // response back ready
 
-  io.axi.awready := !awHoldValidReg && !bvalid
-  io.axi.wready  := !wHoldValidReg  && !bvalid
+  S.AXI.awready := !awHoldValidReg && !bvalid
+  S.AXI.wready  := !wHoldValidReg  && !bvalid
 
-  val awFire = io.axi.awvalid && io.axi.awready
-  val wFire  = io.axi.wvalid  && io.axi.wready
+  val awFire = S.AXI.awvalid && S.AXI.awready
+  val wFire  = S.AXI.wvalid  && S.AXI.wready
 
   when(awFire) {
     awHoldValidReg := true.B
-    awHoldAddrReg  := io.axi.awaddr
+    awHoldAddrReg  := S.AXI.awaddr
   }
   when(wFire) {
     wHoldValidReg := true.B
-    wHoldDataReg  := Reverse(io.axi.wdata)
-    wHoldStrbReg  := io.axi.wstrb
+    wHoldDataReg  := Reverse(S.AXI.wdata)
+    wHoldStrbReg  := S.AXI.wstrb
   }
 
   val doWrite = awHoldValidReg && wHoldValidReg && !bvalid
@@ -48,11 +48,11 @@ class Axi4Lite32Counter(AxiAddrBW: Int = 24) extends Module
     wHoldValidReg  := false.B
   }
 
-  val bFire = bvalid && io.axi.bready
+  val bFire = bvalid && S.AXI.bready
   when(bFire) { bvalid := false.B }
 
-  io.axi.bvalid := bvalid
-  io.axi.bresp  := AxiLiteResp.OKAY.U
+  S.AXI.bvalid := bvalid
+  S.AXI.bresp  := AxiLiteResp.OKAY.U
 
   //
   // Read path: AR -> R
@@ -61,8 +61,8 @@ class Axi4Lite32Counter(AxiAddrBW: Int = 24) extends Module
   val rdataReg  = Reg(UInt(32.W))
 
   val arready = !rvalidReg
-  io.axi.arready := arready
-  val arFire = io.axi.arvalid && arready
+  S.AXI.arready := arready
+  val arFire = S.AXI.arvalid && arready
 
   val rvalidPipe = RegNext(arFire, init=false.B)
 
@@ -70,7 +70,7 @@ class Axi4Lite32Counter(AxiAddrBW: Int = 24) extends Module
     rdstallCounterReg := rdstallCounterReg + 1.U
   }
 
-  val rFire = rvalidReg && io.axi.rready
+  val rFire = rvalidReg && S.AXI.rready
   when(rFire) {
     rvalidReg := false.B
     rdstallCounterReg := 0.U
@@ -79,10 +79,10 @@ class Axi4Lite32Counter(AxiAddrBW: Int = 24) extends Module
     // rdataReg  := counterReg
   }
 
-  io.axi.rvalid := rvalidReg
-  // io.axi.rdata  := rdataReg
-  io.axi.rdata  := Cat(rdstallCounterReg, counterReg) // I need to return the laster counter number 
-  io.axi.rresp  := AxiLiteResp.OKAY.U
+  S.AXI.rvalid := rvalidReg
+  // io.AXI.rdata  := rdataReg
+  S.AXI.rdata  := Cat(rdstallCounterReg, counterReg) // I need to return the laster counter number
+  S.AXI.rresp  := AxiLiteResp.OKAY.U
 }
 
 object Axi4Lite32Counter extends App {

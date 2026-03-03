@@ -13,7 +13,7 @@ class Axi4Lite32BFM[D <: Module with HasAxiLite32IO](dut: D, timeoutCycles: Int 
   import chisel3.simulator.PeekPokeAPI._
   import Axi4WriteMode._
   
-  private def axi = dut.io.axi
+  private def axi = dut.S.AXI
 
   def step(n: Int = 1): Unit = dut.clock.step(n)
 
