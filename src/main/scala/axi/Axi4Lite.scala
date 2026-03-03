@@ -10,7 +10,7 @@ object AxiLiteResp {
 }
 
 // A simple AXI4-Lite slave
-class AxiLite(AddrBW: Int = 24, DataBW: Int = 32) extends Bundle {
+class AxiLite(AddrBW: Int = 32, DataBW: Int = 32) extends Bundle {
   // write address
   val awaddr  = Input(UInt(AddrBW.W))
   val awvalid = Input(Bool())
