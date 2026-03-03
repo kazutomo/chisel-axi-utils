@@ -1,7 +1,7 @@
 // See README.md for license details.
 
 ThisBuild / scalaVersion     := "2.13.18"
-ThisBuild / version          := "0.1.0"
+ThisBuild / version          := "0.2.0"
 ThisBuild / organization     := "com.github.kazutomo"
 ThisBuild / logLevel := Level.Warn
 

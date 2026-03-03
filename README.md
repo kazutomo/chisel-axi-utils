@@ -1,4 +1,4 @@
-# axi-simple-utils
+# chisel-axi-utils
 
 A lightweight set of AXI utilities written in **Chisel**.
 

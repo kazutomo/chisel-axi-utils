@@ -2,11 +2,11 @@ package axi
 
 import chisel3._
 
-object AxiLiteResp extends ChiselEnum {
-  val OKAY   = "b00".U
-  val EXOKAY = "b01".U // unused in AXI4-lite
-  val SLVERR = "b10".U // slave generated error
-  val DECERR = "b11".U // address decode error
+object AxiLiteResp {
+  val OKAY   = 0b00
+  val EXOKAY = 0b01 // unused in AXI4-lite
+  val SLVERR = 0b10 // slave generated error
+  val DECERR = 0b11 // address decode error
 }
 
 // A simple AXI4-Lite slave
