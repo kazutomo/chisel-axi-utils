@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// See LICENSE file for details.
 package axiexamples
 
 import axi._
@@ -99,6 +101,6 @@ class Axi4Lite32RevMem(nwords: Int = 128, AxiAddrBW: Int = 32) extends Module
 }
 
 object Axi4Lite32RevMem extends App {
-  import common.GenVerilog
-  GenVerilog.generate(new Axi4Lite32RevMem())
+  import rtlgen.EmitVerilog
+  EmitVerilog.generate(new Axi4Lite32RevMem())
 }
