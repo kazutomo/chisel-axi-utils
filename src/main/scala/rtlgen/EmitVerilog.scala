@@ -36,7 +36,7 @@ object EmitVerilog {
     val et = (System.nanoTime() - st)
     val ets = et.toDouble * 1e-9
     println(f"Verilog generation: ${ets}%.2f sec")
-    genAxiWrapper(targetdir, topname)
+    genAxiWrapper(targetdir, topname, "user_accel_bd_wrapper")
   }
 
   def writeto(fn: String, text: String, executable: Boolean = false) : Unit = {
