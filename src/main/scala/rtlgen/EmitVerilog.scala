@@ -8,9 +8,22 @@ import _root_.circt.stage.ChiselStage
 import java.io.PrintWriter
 import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Paths}
+import scala.io.Source
 import scala.reflect.ClassTag
+import scala.util.Using
 
 object EmitVerilog {
+  def readfilelist(filelistfn: String) : List[String] = {
+    val p = Paths.get(filelistfn)
+    if (Files.isRegularFile(p)) {
+      val lines: List[String] =
+        Using.resource(Source.fromFile(filelistfn)) { src =>
+          src.getLines().toList
+        }
+      lines
+    } else
+      List()
+  }
 
   def apply(gen: => RawModule) : Unit = {
     generate(gen)
@@ -22,7 +35,9 @@ object EmitVerilog {
                                             "--strip-debug-info",
                                             "--lowering-options=disallowLocalVariables,disallowPackedArrays",
                                             "--verilog",
-                                          )              ) : Unit = {
+                                          ),
+                                          opts : Map[String, String] = Map.empty
+                                         ) : Unit = {
     val topname = implicitly[ClassTag[T]].runtimeClass.getSimpleName
     val targetdir = "generated/" + topname
     Files.createDirectories(java.nio.file.Paths.get(targetdir))
@@ -36,7 +51,14 @@ object EmitVerilog {
     val et = (System.nanoTime() - st)
     val ets = et.toDouble * 1e-9
     println(f"Verilog generation: ${ets}%.2f sec")
-    genAxiWrapper(targetdir, topname, "user_accel_bd_wrapper")
+
+    if (opts.contains("axiwrapper")) {
+      genAxiWrapper(targetdir, topname, "user_accel_bd_wrapper")
+    }
+    if (opts.contains("vivado")) {
+      val flist = readfilelist(targetdir + "/filelist.f")
+      VivadoScript.generate(flist,  topname, targetdir, opts("vivado"))
+    }
   }
 
   def writeto(fn: String, text: String, executable: Boolean = false) : Unit = {
