@@ -28,10 +28,10 @@ class Axi4Lite32RevMem(nwords: Int = 128, AxiAddrBW: Int = 32) extends Module
   val wHoldDataReg   = Reg(UInt(32.W))
   val wHoldStrbReg   = Reg(UInt(4.W))
 
-  val bvalid = RegInit(false.B) // response back ready
+  val bvalidReg = RegInit(false.B) // response back ready
 
-  S.AXI.awready := !awHoldValidReg && !bvalid
-  S.AXI.wready  := !wHoldValidReg  && !bvalid
+  S.AXI.awready := !awHoldValidReg && !bvalidReg
+  S.AXI.wready  := !wHoldValidReg  && !bvalidReg
 
   val awFire = S.AXI.awvalid && S.AXI.awready
   val wFire  = S.AXI.wvalid  && S.AXI.wready
@@ -46,7 +46,7 @@ class Axi4Lite32RevMem(nwords: Int = 128, AxiAddrBW: Int = 32) extends Module
     wHoldStrbReg  := S.AXI.wstrb
   }
 
-  val doWrite = awHoldValidReg && wHoldValidReg && !bvalid
+  val doWrite = awHoldValidReg && wHoldValidReg && !bvalidReg
 
   when(doWrite) {
     val idx = wordIdx(awHoldAddrReg)
@@ -59,27 +59,34 @@ class Axi4Lite32RevMem(nwords: Int = 128, AxiAddrBW: Int = 32) extends Module
 
     mem.write(idx, bytes, wHoldStrbReg.asBools) // mask per byte
 
-    bvalid         := true.B
+    bvalidReg      := true.B
     awHoldValidReg := false.B
     wHoldValidReg  := false.B
   }
 
-  val bFire = bvalid && S.AXI.bready
-  when(bFire) { bvalid := false.B }
+  val bFire = bvalidReg && S.AXI.bready
+  when(bFire) { bvalidReg := false.B }
 
-  S.AXI.bvalid := bvalid
+  S.AXI.bvalid := bvalidReg
   S.AXI.bresp  := AxiLiteResp.OKAY.U
 
   //
   // Read path: AR -> R
   //
 
-  val rvalid = RegInit(false.B)
-  val rdata  = Reg(UInt(32.W))
+  val rvalidReg = RegInit(false.B)
+  val rdataReg  = Reg(UInt(32.W))
+  val araddrHoldReg = RegInit(0.U(AxiAddrBW.W))
+  val arFiredReg = RegInit(0.U(16.W))
 
-  val arready = !rvalid
+  val arready = !rvalidReg
   S.AXI.arready := arready
   val arFire = S.AXI.arvalid && arready
+
+  when(arFire) {
+    araddrHoldReg := S.AXI.araddr
+    arFiredReg := arFiredReg + 1.U
+  }
 
   val arIdx = wordIdx(S.AXI.araddr)
   val memOutVec = mem.read(arIdx, arFire)
@@ -87,16 +94,22 @@ class Axi4Lite32RevMem(nwords: Int = 128, AxiAddrBW: Int = 32) extends Module
 
   val rvalidPipe = RegNext(arFire, init=false.B)
 
-  val rFire = rvalid && S.AXI.rready
+  val rFire = rvalidReg && S.AXI.rready
+  val rFiredReg = RegInit(0.U(16.W))
   when(rFire) {
-    rvalid := false.B
+    rvalidReg := false.B
+    rFiredReg := rFiredReg + 1.U
   }.elsewhen(rvalidPipe) {
-    rvalid := true.B
-    rdata  := memOutU32
+    rvalidReg := true.B
+    when(araddrHoldReg === (nwords*4).U) {
+      rdataReg := (rFiredReg << 16) | arFiredReg
+    }.otherwise {
+      rdataReg := memOutU32
+    }
   }
 
-  S.AXI.rvalid := rvalid
-  S.AXI.rdata  := rdata
+  S.AXI.rvalid := rvalidReg
+  S.AXI.rdata  := rdataReg
   S.AXI.rresp  := AxiLiteResp.OKAY.U
 }
 
