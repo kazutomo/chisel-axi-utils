@@ -45,7 +45,7 @@ class AVED_Bridge:
         handler.setFormatter(logging.Formatter("%(message)s"))
         self.log.addHandler(handler)
 
-        self.log.info("FPGA Emulation Initialized!\n")
+        self.log.info("Alveo V80 FPGA AVED Testing Environment Initialized!\n")
 
     def writelog(self, txt):
         print(txt, end='')
