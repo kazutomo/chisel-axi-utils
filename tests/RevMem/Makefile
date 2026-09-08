@@ -13,7 +13,7 @@ EXTRA_ARGS += --trace --trace-structs
 
 test : $(SRCDIR)/$(HWMODULENAME).sv
 	@echo $(VERILOG_SOURCES)
-	@PARAMFN=$(SRCDIR)/RevMem_params.json $(MAKE) sim MODULE=tb_revmem TOPLEVEL=$(TOPNAME)
+	@PARAMFN=$(SRCDIR)/params.json $(MAKE) sim MODULE=tb_revmem TOPLEVEL=$(TOPNAME)
 	@echo -e "\n[Output]"
 	@cat output.log
 

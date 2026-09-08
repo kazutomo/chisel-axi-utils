@@ -66,7 +66,8 @@ object AxiModuleParamsHelper {
                                               directory: os.Path
                                             ): Unit = {
     os.write.over(
-      directory / s"${params.moduleName}_params.json",
+      // directory / s"${params.moduleName}_params.json",
+      directory / s"params.json",
       write(params, indent = 2),
       createFolders = true
     )
